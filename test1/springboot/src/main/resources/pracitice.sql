@@ -11,172 +11,105 @@
  Target Server Version : 50713 (5.7.13)
  File Encoding         : 65001
 
- Date: 11/05/2025 18:04:10
+ Date: 18/05/2025 15:45:31
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for department
+-- Table structure for rule
 -- ----------------------------
-DROP TABLE IF EXISTS `department`;
-CREATE TABLE `department`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `manager_id` bigint(20) NULL DEFAULT NULL,
-  `parent_id` bigint(20) NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
+DROP TABLE IF EXISTS `rule`;
+CREATE TABLE `rule`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '序号',
+  `warn_id` int(11) NULL DEFAULT NULL COMMENT '规则编号',
+  `name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
+  `battery_type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '电池类型',
+  `warn_rule` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '预警规则数',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of department
+-- Records of rule
 -- ----------------------------
-INSERT INTO `department` VALUES (1, '1', 1, NULL, 1, NULL, NULL);
-INSERT INTO `department` VALUES (2, '2', 2, 1, 1, NULL, NULL);
-INSERT INTO `department` VALUES (3, '财务部', 3, 1, 1, NULL, NULL);
-INSERT INTO `department` VALUES (4, '4', 4, 3, 1, NULL, NULL);
+INSERT INTO `rule` VALUES (1, 1, '电压差报警', '三元电池', '5|3|1|0.6|0.2');
+INSERT INTO `rule` VALUES (2, 1, '电压差报警', '铁锂电池', '2|1|0.7|0.4|0.2');
+INSERT INTO `rule` VALUES (3, 2, '电流差报警', '三元电池', '3|1|0.2');
+INSERT INTO `rule` VALUES (4, 2, '电流差报警', '铁锂电池', '1|0.5|0.2');
 
 -- ----------------------------
--- Table structure for emp_dep_relation
+-- Table structure for vehicle
 -- ----------------------------
-DROP TABLE IF EXISTS `emp_dep_relation`;
-CREATE TABLE `emp_dep_relation`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `employee_id` bigint(20) NULL DEFAULT NULL,
-  `department_id` bigint(20) NULL DEFAULT NULL,
-  `start_date` date NULL DEFAULT NULL,
-  `end_date` date NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
+DROP TABLE IF EXISTS `vehicle`;
+CREATE TABLE `vehicle`  (
+  `vid` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '汽车id',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '车架编号',
+  `battery_type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '电池类型',
+  `total_mil` int(11) NULL DEFAULT NULL COMMENT '总里程',
+  `bh_state` int(11) NULL DEFAULT NULL COMMENT '电池健康状态',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `department_id`(`department_id`) USING BTREE,
-  INDEX `employee_id`(`employee_id`) USING BTREE,
-  CONSTRAINT `emp_dep_relation_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `emp_dep_relation_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `employee` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `idx_vid`(`vid`) USING BTREE COMMENT '对vid进行唯一索引'
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of emp_dep_relation
+-- Records of vehicle
 -- ----------------------------
-INSERT INTO `emp_dep_relation` VALUES (1, 1, 1, NULL, NULL, 1, NULL, NULL);
-INSERT INTO `emp_dep_relation` VALUES (2, 2, 2, NULL, NULL, 1, NULL, NULL);
-INSERT INTO `emp_dep_relation` VALUES (3, 3, 3, NULL, NULL, 1, NULL, NULL);
-INSERT INTO `emp_dep_relation` VALUES (4, 4, 4, NULL, NULL, 1, NULL, NULL);
+INSERT INTO `vehicle` VALUES ('576c57b6ae5c44f0', 1, '三元电池', 100, 100);
+INSERT INTO `vehicle` VALUES ('67fc2bf4926c4766', 2, '铁锂电池', 600, 95);
+INSERT INTO `vehicle` VALUES ('b63a6e4550f04a2d', 3, '三元电池', 300, 98);
 
 -- ----------------------------
--- Table structure for emp_pro_relation
+-- Table structure for warn_message
 -- ----------------------------
-DROP TABLE IF EXISTS `emp_pro_relation`;
-CREATE TABLE `emp_pro_relation`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `employee_id` bigint(20) NULL DEFAULT NULL,
-  `project_id` bigint(20) NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `project_id`(`project_id`) USING BTREE,
-  INDEX `employee_id`(`employee_id`) USING BTREE,
-  CONSTRAINT `emp_pro_relation_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `emp_pro_relation_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `employee` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of emp_pro_relation
--- ----------------------------
-
--- ----------------------------
--- Table structure for employee
--- ----------------------------
-DROP TABLE IF EXISTS `employee`;
-CREATE TABLE `employee`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `gender` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `phone` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `birth_date` date NULL DEFAULT NULL,
-  `hire_date` date NULL DEFAULT NULL,
-  `maneger_id` bigint(20) NULL DEFAULT NULL,
-  `position` bigint(20) NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `position`(`position`) USING BTREE,
-  CONSTRAINT `employee_ibfk_1` FOREIGN KEY (`position`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of employee
--- ----------------------------
-INSERT INTO `employee` VALUES (1, '韩磊', '男', '13599991111', 'hanlei@xm.com', '1991-01-01', '2008-08-08', NULL, 1, 1, '2008-08-08 00:00:00', '2018-08-08 12:00:01');
-INSERT INTO `employee` VALUES (2, '张三', '男', '18688880169', 'zhangsan@xm.com', '1992-02-02', '2010-01-08', 1, 2, 1, '2025-04-29 17:21:00', '2025-05-23 17:21:04');
-INSERT INTO `employee` VALUES (3, '3', NULL, NULL, '3', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO `employee` VALUES (4, '4', NULL, NULL, '4', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO `employee` VALUES (5, '5555', NULL, NULL, '5', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-
--- ----------------------------
--- Table structure for position
--- ----------------------------
-DROP TABLE IF EXISTS `position`;
-CREATE TABLE `position`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
+DROP TABLE IF EXISTS `warn_message`;
+CREATE TABLE `warn_message`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '警告信息id',
+  `car_id` int(11) NULL DEFAULT NULL COMMENT '车架编号',
+  `battery_type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '电池类型',
+  `warn_name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '警告名',
+  `warn_level` int(11) NULL DEFAULT NULL COMMENT '警告等级',
+  `signal_id` int(11) NULL DEFAULT NULL COMMENT '信号id',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of position
+-- Records of warn_message
 -- ----------------------------
-INSERT INTO `position` VALUES (1, '1', 1, '2025-05-09 17:19:50', '2025-05-24 17:19:54');
-INSERT INTO `position` VALUES (2, '2', 2, '2025-05-14 17:20:03', '2025-05-13 17:20:05');
+INSERT INTO `warn_message` VALUES (7, 1, '三元电池', '电压差报警', 0, 32);
+INSERT INTO `warn_message` VALUES (8, 2, '铁锂电池', '电流差报警', 2, 33);
+INSERT INTO `warn_message` VALUES (9, 3, '三元电池', '电压差报警', 2, 34);
+INSERT INTO `warn_message` VALUES (10, 3, '三元电池', '电流差报警', 2, 34);
+INSERT INTO `warn_message` VALUES (11, 3, '三元电池', '电压差报警', 0, 35);
+INSERT INTO `warn_message` VALUES (12, 3, '三元电池', '电压差报警', 0, 36);
+INSERT INTO `warn_message` VALUES (13, 1, '三元电池', '电压差报警', 0, 37);
+INSERT INTO `warn_message` VALUES (14, 2, '铁锂电池', '电流差报警', 2, 38);
+INSERT INTO `warn_message` VALUES (15, 3, '三元电池', '电压差报警', 2, 39);
+INSERT INTO `warn_message` VALUES (16, 3, '三元电池', '电流差报警', 2, 39);
 
 -- ----------------------------
--- Table structure for product
+-- Table structure for warn_signal
 -- ----------------------------
-DROP TABLE IF EXISTS `product`;
-CREATE TABLE `product`  (
-  `id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '主键',
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品名称',
-  `num` int(11) NULL DEFAULT NULL COMMENT '商品库存数量',
+DROP TABLE IF EXISTS `warn_signal`;
+CREATE TABLE `warn_signal`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '信号id',
+  `car_id` int(11) NOT NULL COMMENT '车架编号',
+  `warn_id` int(11) NULL DEFAULT NULL COMMENT '规则编号（不传的话遍历所有规则）',
+  `cwsignal` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '信号',
+  `signal_state` int(11) NULL DEFAULT NULL COMMENT '处理状态 1代表处理 0代表未处理',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 42 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of product
+-- Records of warn_signal
 -- ----------------------------
-INSERT INTO `product` VALUES ('1', '1', 0);
-INSERT INTO `product` VALUES ('11', '2', 2);
-INSERT INTO `product` VALUES ('2', '2', 2);
-INSERT INTO `product` VALUES ('4', '2', 100);
-
--- ----------------------------
--- Table structure for project
--- ----------------------------
-DROP TABLE IF EXISTS `project`;
-CREATE TABLE `project`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `manager_id` bigint(20) NULL DEFAULT NULL,
-  `start_date` date NULL DEFAULT NULL,
-  `end_date` date NULL DEFAULT NULL,
-  `status` tinyint(4) NULL DEFAULT NULL,
-  `gmt_created` datetime NULL DEFAULT NULL,
-  `gmt_modify` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of project
--- ----------------------------
+INSERT INTO `warn_signal` VALUES (32, 1, 1, '{\"Mx\":12.0,\"Mi\":0.6}', 1);
+INSERT INTO `warn_signal` VALUES (33, 2, 2, '{\"Ix\":12.0,\"Ii\":11.7}', 1);
+INSERT INTO `warn_signal` VALUES (34, 3, NULL, '{\"Mx\":11.0,\"Mi\":9.6,\"Ix\":12.0,\"Ii\":11.7}', 1);
+INSERT INTO `warn_signal` VALUES (36, 3, 1, '{\"Mx\":12.0,\"Mi\":0.6}', 1);
+INSERT INTO `warn_signal` VALUES (37, 1, 1, '{\"Mx\":12.0,\"Mi\":0.6}', 1);
+INSERT INTO `warn_signal` VALUES (38, 2, 2, '{\"Ix\":12.0,\"Ii\":11.7}', 1);
+INSERT INTO `warn_signal` VALUES (39, 3, NULL, '{\"Mx\":11.0,\"Mi\":9.6,\"Ix\":12.0,\"Ii\":11.7}', 1);
+INSERT INTO `warn_signal` VALUES (41, 3, 1, '{\"Mx\":12.0,\"Mi\":0.6}', 0);
 
 SET FOREIGN_KEY_CHECKS = 1;

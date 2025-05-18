@@ -55,6 +55,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         Result result=new Result<>();
         warnSignal.setSignalState(0);
         result.setData(warnSignalMapper.insert(warnSignal));
+        result.setCode(200);
         return result ;
     }
     @Override
@@ -70,6 +71,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
             warnSignalMapper.insert(warnSignal);
         }
         result.setData("成功加入一个列表的数据");
+        result.setCode(200);
         return result ;
     }
     @Override
@@ -79,12 +81,12 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         List<WarnMessageDto> TotalMessageDtos=new ArrayList<>();
         for(WarnSignalDto warnSignalDto:warnSignalDtos) {
             WarnSignal warnSignal = new WarnSignal(warnSignalDto);
-            int p=warnSignalMapper.insert(warnSignal);
-            if(p==1){
-                System.out.println("将signal加入数据库");
-            }else{
-                System.out.println("加入signal失败");
-            }
+//            int p=warnSignalMapper.insert(warnSignal);
+//            if(p==1){
+//                System.out.println("将signal加入数据库");
+//            }else{
+//                System.out.println("加入signal失败");
+//            }
             //下面对每一个信号进行处理判断
             List<WarnMessageDto> warmMessageDtos=handleWarnSignal(warnSignal);
             //只要返回的结果不是0个 就将结果加入到总结果集合中
@@ -333,6 +335,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
             result.setMessage("当前数据库也没有数据 查询不到该数据");
             result.setData(warnSignal);
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -351,7 +354,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
             result.setData( warnSignalMapper.updateById(warnSignal));
             redisCache.delete("warnSignal:" + warnSignal.getId()); // 删除旧缓存
             result.setMessage("成功将数据库中的数据进行更改并进行redis的删除同步");
-
+            result.setCode(200);
             Thread.sleep(2000);
         } catch (Exception e) {
             //log.error
@@ -376,6 +379,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         else{
             result.setMessage("该数据不存在");
         }
+        result.setCode(200);
         return result;
     }
 

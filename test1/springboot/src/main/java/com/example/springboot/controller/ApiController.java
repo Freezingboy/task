@@ -21,7 +21,7 @@ public class ApiController {
     @Autowired
     private WarnMessageService warnMessageService;
     @PostMapping("/warn")
-    @ApiOperation(value = "对一个列表的预警信号信息进行预警处理")
+    @ApiOperation(value = "对一个列表的预警信号信息进行紧急处理")
     public Result warn(@RequestBody List<WarnSignalDto> warnSignalDtos) throws Exception {
         //现在尝试老师的添加方法
         return warnSignalService.warn(warnSignalDtos) ;

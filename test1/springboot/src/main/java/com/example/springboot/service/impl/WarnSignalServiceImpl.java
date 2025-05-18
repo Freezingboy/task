@@ -13,6 +13,7 @@ import com.example.springboot.entity.dto.WarnMessageDto;
 import com.example.springboot.entity.dto.WarnSignalDto;
 import com.example.springboot.mapper.RuleMapper;
 import com.example.springboot.mapper.VehicleMapper;
+import com.example.springboot.mapper.WarnMessageMapper;
 import com.example.springboot.mapper.WarnSignalMapper;
 import com.example.springboot.redis.RedisCache;
 import com.example.springboot.service.WarnSignalService;
@@ -34,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSignal> implements WarnSignalService {
     @Autowired
     private  WarnSignalMapper warnSignalMapper;
+    @Autowired
+    private WarnMessageMapper warnMessageMapper;
     @Autowired
     private VehicleMapper vehicleMapper;
     @Autowired
@@ -81,18 +84,34 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         List<WarnMessageDto> TotalMessageDtos=new ArrayList<>();
         for(WarnSignalDto warnSignalDto:warnSignalDtos) {
             WarnSignal warnSignal = new WarnSignal(warnSignalDto);
-//            int p=warnSignalMapper.insert(warnSignal);
-//            if(p==1){
-//                System.out.println("将signal加入数据库");
-//            }else{
-//                System.out.println("加入signal失败");
-//            }
+
             //下面对每一个信号进行处理判断
             List<WarnMessageDto> warmMessageDtos=handleWarnSignal(warnSignal);
             //只要返回的结果不是0个 就将结果加入到总结果集合中
             if(warmMessageDtos.size()!=0)
             {
+                for (WarnMessageDto warnMessageDto : warmMessageDtos) {
+                    WarnMessage warnMessage=new WarnMessage(warnMessageDto);
+                    //绑定警告信息与信号id之间的关联关系
+                    //将每一个数据警告信息加入数据库
+                    warnMessage.setSignalId(warnSignal.getId());
+                    int t=warnMessageMapper.insert(warnMessage);
+                    if(t==1){
+                        System.out.println("当前result为"+result);
+                    }else{
+                        System.out.println("当前插入数据库插入出错");
+                    }
+                }
+                //将所有告警信息加入到total用来封装信息返回给前端
                 TotalMessageDtos.addAll(warmMessageDtos);
+            }
+            //对每一个warnSignal进行处理
+            warnSignal.setSignalState(1);
+            int p=warnSignalMapper.insert(warnSignal);
+            if(p==1){
+                System.out.println("将signal加入数据库");
+            }else{
+                System.out.println("加入signal失败");
             }
         }
         //对数据返回的格式进行整理

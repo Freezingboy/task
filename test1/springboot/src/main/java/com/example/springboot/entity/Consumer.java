@@ -64,15 +64,6 @@ public class Consumer implements CommandLineRunner {
                         for(WarnSignal warnSignal:warnSignals){
                             List<WarnMessageDto> warnMessageDtos = warnSignalService.handleWarnSignal(warnSignal);
                             //开始处理 将警告信息插入数据库同时将信号对应的状态置为1
-
-                            //将这里的每一个signal的状态进行更新
-                            warnSignal.setSignalState(1);
-                            Result result1=warnSignalService.updateWarnSignal(warnSignal);
-                            if(result1!=null){
-                                System.out.println("当前result1为："+result1);
-                            }else{
-                                System.out.println("当前插入数据库插入出错");
-                            }
                             //然后将警告信息一条一条插入数据库
                             for (WarnMessageDto warnMessageDto : warnMessageDtos) {
                                 WarnMessage warnMessage=new WarnMessage(warnMessageDto);
@@ -95,6 +86,14 @@ public class Consumer implements CommandLineRunner {
                                 }
                                 //将改造后的map结果放入结果集中
                                 resultList.add(map);
+                            }
+                            //最后记得将这里的每一个signal的状态进行更新
+                            warnSignal.setSignalState(1);
+                            Result result1=warnSignalService.updateWarnSignal(warnSignal);
+                            if(result1!=null){
+                                System.out.println("当前result1为："+result1);
+                            }else{
+                                System.out.println("当前插入数据库插入出错");
                             }
                         }
                         System.out.println("消费者处理后当前结果为" + resultList);

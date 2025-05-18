@@ -14,6 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
 @RunWith(SpringRunner.class)       // JUnit4 需添加
 @SpringBootTest(classes = SpringbootApplication.class) // 关键修正 // Application 是主类名              // 加载 Spring 上下文
 public class WarnSignalTest {
@@ -73,6 +76,27 @@ public class WarnSignalTest {
         String id="3";
         Result result=new Result<>();
         result=warnMessageService.getMessageByCarId(id);
+        System.out.println(result);
+    }
+    @Test
+    public void  warntest() throws Exception {
+        WarnSignalDto warnSignalDto1=new WarnSignalDto();
+        warnSignalDto1.setSignal("{\"Mx\":12.0,\"Mi\":0.6}");
+        warnSignalDto1.setWarnId(1);
+        warnSignalDto1.setCarId(1);
+        WarnSignalDto warnSignalDto2=new WarnSignalDto();
+        warnSignalDto2.setSignal("{\"Ix\":12.0,\"Ii\":11.7}");
+        warnSignalDto2.setWarnId(2);
+        warnSignalDto2.setCarId(2);
+        WarnSignalDto warnSignalDto3=new WarnSignalDto();
+        warnSignalDto3.setSignal("{\"Mx\":11.0,\"Mi\":9.6,\"Ix\":12.0,\"Ii\":11.7}");
+        warnSignalDto3.setCarId(3);
+        List<WarnSignalDto>warnSignalDtos=new ArrayList<>();
+        warnSignalDtos.add(warnSignalDto1);
+        warnSignalDtos.add(warnSignalDto2);
+        warnSignalDtos.add(warnSignalDto3);
+        Result result=new Result<>();
+        result=warnSignalService.warn(warnSignalDtos);
         System.out.println(result);
     }
 }

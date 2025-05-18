@@ -117,8 +117,8 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
     }
     //下面这个warn1执行定时任务定时查询数据库中的 从数据库中获取数据
     @Override
-//    @Scheduled(cron = "0 0/1 * * * ?")
-    @Scheduled(cron = "0 * * * * ?")  // 每分钟执行一次
+    @Scheduled(cron = "0 0/5 * * * ?")
+//    @Scheduled(cron = "0 * * * * ?")  // 每分钟执行一次
     public Result warn1() throws Exception {
         //定时任务开始执行
         System.out.println("开始执行定时任务");

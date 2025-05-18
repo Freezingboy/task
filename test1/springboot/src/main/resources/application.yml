@@ -1,0 +1,33 @@
+server:
+  port: 38181
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/pracitice?serveTimezone=GMT%2b8
+    username: root
+    #    password: ontoweb
+    password: 123456
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
+    jedis:
+      pool:
+        max-idle: 6
+        max-active: 32
+        max-wait: 100
+        min-idle: 4
+
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+files:
+  upload:
+    path: D:/Baby/files/
+#这里加一个反斜杠才能写到这个文件夹里面

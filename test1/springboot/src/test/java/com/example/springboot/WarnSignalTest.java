@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class WarnSignalTest {
     }
     @Test
     public void  gettest(){
-        String id="40";
+        String id="445cc06b13bb4b8a981d78";
         Result result=new Result<>();
         result=warnSignalService.get(id);
         System.out.println(result);
@@ -57,7 +58,8 @@ public class WarnSignalTest {
         warnSignal.setCwsignal("{\"Mx\":12.0,\"Mi\":0.6}");
         warnSignal.setWarnId(2);
         warnSignal.setCarId(1);
-        warnSignal.setId(40);
+        warnSignal.setId("445cc06b13bb4b8a981d78");
+        warnSignal.setCreateTime(LocalDateTime.now());
         Result result=new Result<>();
         result=warnSignalService.updateWarnSignal(warnSignal);
         System.out.println(result);
@@ -65,7 +67,7 @@ public class WarnSignalTest {
     //测试删除接口
     @Test
     public void  deletetest(){
-        String id="40";
+        String id="445cc06b13bb4b8a981d78";
         Result result=new Result<>();
         result=warnSignalService.delete(id);
         System.out.println(result);

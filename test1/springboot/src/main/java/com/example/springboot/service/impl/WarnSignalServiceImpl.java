@@ -55,6 +55,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
     @Resource
     private Producer springProducer;
     @Override
+    //添加单个信号的接口
     public Result add(WarnSignalDto warnSignalDto) {
         WarnSignal warnSignal=new WarnSignal(warnSignalDto);
         Result result=new Result<>();
@@ -70,6 +71,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         return result ;
     }
     @Override
+    //添加信号list接口
     public Result addList(List<WarnSignalDto> warnSignalDtos) {
         Result result = new Result<>();
         List<WarnSignal>warnSignals=new ArrayList<>();
@@ -261,6 +263,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
     public Result getByCarId(String carId) {
         LambdaQueryWrapper<WarnSignal>warnSignalLambdaQueryWrapper=new LambdaQueryWrapper<>();
         warnSignalLambdaQueryWrapper.eq(WarnSignal::getCarId,carId);
+        warnSignalLambdaQueryWrapper.orderByDesc(WarnSignal::getCreateTime);
         List<WarnSignal>warnSignals=warnSignalMapper.selectList(warnSignalLambdaQueryWrapper);
         Result result=new Result<>();
         result.setCode(200);
@@ -278,10 +281,6 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
 //        String[] operates=rule.getWarnRule().split("\\|");
         //通过JSON进行解析
         List<RuleDto>ruleDtos = JSON.parseArray(rule.getWarnRule(), RuleDto.class);
-//        for(String s:operates){
-//            System.out.println("当前拆分出来的操作数为"+s);
-//        }
-
         WarnMessageDto warnMessageDto=null;
         //根据warnId判定是选择电流还是电压
         if(warnId==1){
@@ -324,9 +323,11 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         //最后将数据进行返回
         return warnMessageDto;
     }
+    //判断是否具备Mx与Mi
     private boolean isValieMxWithMi(JSONObject jsonObject) {
        return jsonObject.containsKey("Mx")&&jsonObject.getString("Mx")!=null&&jsonObject.containsKey("Mi")&&jsonObject.getString("Mi")!=null;
     }
+    //判断是否具备Ix与Ii
     private boolean isValieIxWithIi(JSONObject jsonObject) {
         return jsonObject.containsKey("Ix")&&jsonObject.getString("Ix")!=null&&jsonObject.containsKey("Ii")&&jsonObject.getString("Ii")!=null;
     }
@@ -402,7 +403,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         }
        return -1;
     }
-
+    //根据指定id获取信号信息
     @Override
     public Result get(String id) {
         Result result=new Result<>();
@@ -430,6 +431,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         result.setCode(200);
         return result;
     }
+    //根据id更新信号信息
     @Override
     public Result updateWarnSignal(WarnSignal warnSignal) {
         //现在尝试老师的redis读取方法
@@ -459,6 +461,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         }
         return result;
     }
+    //根据id删除信息信息
     @Override
     public Result delete(String id) {
         //尝试老师上课教的方法
@@ -474,10 +477,11 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         result.setCode(200);
         return result;
     }
-
+    //根据id获取所有信号信息
     @Override
     public Result getAll() {
         QueryWrapper<WarnSignal> queryWrapper=new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_time");
         List<WarnSignal> WarnSignalList=warnSignalMapper.selectList(queryWrapper);
         Result result=new Result<>();
         result.setData(WarnSignalList);

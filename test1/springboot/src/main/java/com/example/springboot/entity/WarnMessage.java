@@ -28,7 +28,7 @@ public class WarnMessage {
     private Integer warnLevel;
     //信号id
     @JsonProperty("signal_id")  // 映射JSON中的car_id字段
-    private Integer signalId;
+    private String signalId;
 
     public WarnMessage(WarnMessageDto warnMessageDto){
         this.carId=warnMessageDto.getCarId();

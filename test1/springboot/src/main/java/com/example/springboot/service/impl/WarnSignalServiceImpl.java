@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.springboot.entity.*;
+import com.example.springboot.entity.dto.RuleDto;
 import com.example.springboot.entity.dto.WarnMessageDto;
 import com.example.springboot.entity.dto.WarnSignalDto;
 import com.example.springboot.mapper.RuleMapper;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -57,8 +59,14 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         WarnSignal warnSignal=new WarnSignal(warnSignalDto);
         Result result=new Result<>();
         warnSignal.setSignalState(0);
+        UUID uuid = UUID.randomUUID();
+        String shortUuid = uuid.toString().replace("-", "").substring(0, 22);
+        System.out.println("22位字符串是: " + shortUuid);
+        warnSignal.setId(shortUuid);
+        warnSignal.setCreateTime(LocalDateTime.now());
         result.setData(warnSignalMapper.insert(warnSignal));
         result.setCode(200);
+        result.setMessage("ok");
         return result ;
     }
     @Override
@@ -67,24 +75,51 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         List<WarnSignal>warnSignals=new ArrayList<>();
         for(WarnSignalDto warnSignalDto:warnSignalDtos) {
             WarnSignal warnSignal = new WarnSignal(warnSignalDto);
-//            UUID uuid = UUID.randomUUID();
-//            // 打印原始UUID
-////        System.out.println("生成的UUID是: " + uuid.toString());
-//            warnSignal.setId(uuid.toString());
+            UUID uuid = UUID.randomUUID();
+            String shortUuid = uuid.toString().replace("-", "").substring(0, 22);
+            System.out.println("22位字符串是: " + shortUuid);
+            warnSignal.setId(shortUuid);
+            warnSignal.setCreateTime(LocalDateTime.now());
             warnSignalMapper.insert(warnSignal);
+
         }
-        result.setData("成功加入一个列表的数据");
+        result.setData("1");
         result.setCode(200);
         return result ;
     }
+    //通过下面这个接口获取到最新的signalId 避免在高并发情况下重复
+//    private  int getSignalId(){
+//        LambdaQueryWrapper<WarnSignal>warnSignalLambdaQueryWrapper=new LambdaQueryWrapper<>();
+//        warnSignalLambdaQueryWrapper.orderByDesc(WarnSignal::getId);
+//        warnSignalLambdaQueryWrapper.last("limit 1");
+//        WarnSignal warnSignal=warnSignalMapper.selectOne(warnSignalLambdaQueryWrapper);
+//        //获取到最新的id
+//        if(warnSignal==null)
+//        {
+//            return 0;
+//        }
+//        return warnSignal.getId();
+//    }
     @Override
     //这一个接口是对外声明的 可以主动调用
     public Result warn(List<WarnSignalDto> warnSignalDtos) throws Exception {
         Result result = new Result<>();
+//        //我这里只查一次 缓解查询压力
+//        int newSignalId=getSignalId();
+        //声明警告信息的包装类
         List<WarnMessageDto> TotalMessageDtos=new ArrayList<>();
+        //对每一个前端传入的信号信息进行处理
         for(WarnSignalDto warnSignalDto:warnSignalDtos) {
             WarnSignal warnSignal = new WarnSignal(warnSignalDto);
-
+            //对每一个warnSignal进行处理
+            warnSignal.setSignalState(1);
+            warnSignal.setCreateTime(LocalDateTime.now());
+//            //将id设为最新的id+1
+//            warnSignal.setId(++newSignalId);
+            UUID uuid = UUID.randomUUID();
+            String shortUuid = uuid.toString().replace("-", "").substring(0, 22);
+            System.out.println("22位字符串是: " + shortUuid);
+            warnSignal.setId(shortUuid);
             //下面对每一个信号进行处理判断
             List<WarnMessageDto> warmMessageDtos=handleWarnSignal(warnSignal);
             //只要返回的结果不是0个 就将结果加入到总结果集合中
@@ -94,10 +129,11 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                     WarnMessage warnMessage=new WarnMessage(warnMessageDto);
                     //绑定警告信息与信号id之间的关联关系
                     //将每一个数据警告信息加入数据库
+                    System.out.println(warnSignal.getId());
                     warnMessage.setSignalId(warnSignal.getId());
                     int t=warnMessageMapper.insert(warnMessage);
                     if(t==1){
-                        System.out.println("当前result为"+result);
+                        System.out.println("当前warnMessage为"+warnMessage);
                     }else{
                         System.out.println("当前插入数据库插入出错");
                     }
@@ -105,8 +141,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                 //将所有告警信息加入到total用来封装信息返回给前端
                 TotalMessageDtos.addAll(warmMessageDtos);
             }
-            //对每一个warnSignal进行处理
-            warnSignal.setSignalState(1);
+            //处理完之后再将数据加入数据库
             int p=warnSignalMapper.insert(warnSignal);
             if(p==1){
                 System.out.println("将signal加入数据库");
@@ -240,7 +275,9 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         //首先吧signal信息进行获取后通过json对象进行拆分
         JSONObject jsonObject= JSON.parseObject(signal);
         //将rule中的规则进行拆分获取操作数
-        String[] operates=rule.getWarnRule().split("\\|");
+//        String[] operates=rule.getWarnRule().split("\\|");
+        //通过JSON进行解析
+        List<RuleDto>ruleDtos = JSON.parseArray(rule.getWarnRule(), RuleDto.class);
 //        for(String s:operates){
 //            System.out.println("当前拆分出来的操作数为"+s);
 //        }
@@ -259,7 +296,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                 //先将警告名与电池类型确定
                 warnMessageDto.setWarnName(rule.getName());
                 warnMessageDto.setBatteryType(rule.getBatteryType());
-                warnMessageDto.setWarnLevel(getWarnLevel(offset,operates));
+                warnMessageDto.setWarnLevel(getWarnLevel1(offset,ruleDtos));
 //                System.out.println("当前计算的结果位："+warnMessageDto);
             }
 
@@ -278,7 +315,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                 //先将警告名与电池类型确定
                 warnMessageDto.setWarnName(rule.getName());
                 warnMessageDto.setBatteryType(rule.getBatteryType());
-                warnMessageDto.setWarnLevel(getWarnLevel(offset, operates));
+                warnMessageDto.setWarnLevel(getWarnLevel1(offset, ruleDtos));
             }
         }else{
             //如果不是上面两个情况 直接返回null 再上一级进行判断
@@ -299,6 +336,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
 //        System.out.println("当前进入获取等级接口");
 //        System.out.println("当前的差值为："+offset);
         //根据操作数的比对确定报警信息
+
         Double max= Double.valueOf(operates[0]);
         Double min= Double.valueOf(operates[operates.length-1]);
         if(offset>=max){
@@ -328,6 +366,41 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
             }
         }
         return -1;
+    }
+    //通过一个通用的接口1确定等级 通过对规则的json解析数组
+    private int getWarnLevel1(Double offset, List<RuleDto>ruleDtos) {
+        //用一个通用的接口依次遍历 不用单独去找最大和最小
+        for(int i=0;i<ruleDtos.size();i++)
+        {
+            if(ruleDtos.get(i).getLeft()!=null||ruleDtos.get(i).getRight()!=null){
+                //获取左操作数与右操作数
+                System.out.println("当前进入比较值为"+ruleDtos.get(i));
+                //用一个bool来控制是否是当前结果
+                boolean tleft = true,tright=true;
+                Double left= ruleDtos.get(i).getLeft();
+                //对左操作数和左操作符进行判定
+                if(left!=null&&ruleDtos.get(i).getLeftOperator()!=null){
+                    if(offset>=left){
+                        tleft=true;
+                    }else{
+                        tleft=false;
+                    }
+                }
+                //对右操作数和右操作符进行判定
+                Double right= ruleDtos.get(i).getRight();
+                if(right!=null&&ruleDtos.get(i).getRightOperator()!=null){
+                    if(offset<right){
+                        tright=true;
+                    }else{
+                        tright=false;
+                    }
+                }
+                if(tleft&&tright){
+                    return ruleDtos.get(i).getLevel();
+                }
+            }
+        }
+       return -1;
     }
 
     @Override

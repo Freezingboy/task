@@ -47,6 +47,7 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
             result.setMessage("当前id已被绑定，不可插入");
             return result;
         }
+        result.setMessage("ok");
         result.setData(warnMessageMapper.insert(warnMessage));
         return result ;
     }
@@ -138,6 +139,7 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
         //首先根据carId获取到对应的signalId
         LambdaQueryWrapper<WarnSignal>warnSignalLambdaQueryWrapper=new LambdaQueryWrapper<>();
         warnSignalLambdaQueryWrapper.eq(WarnSignal::getCarId,carId);
+        warnSignalLambdaQueryWrapper.orderByDesc(WarnSignal::getCreateTime);
         List<WarnSignal>warnSignals=warnSignalMapper.selectList(warnSignalLambdaQueryWrapper);
         List<WarnMessage>totalWarnMessageList=null;
         if(warnSignals!=null&&warnSignals.size()!=0){

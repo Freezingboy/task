@@ -40,6 +40,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
             result.setMessage("当前id已被绑定，不可插入");
             return result;
         }
+        result.setMessage("ok");
         result.setData(ruleMapper.insert(rule));
         return result ;
     }

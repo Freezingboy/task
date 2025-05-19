@@ -48,6 +48,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
         String shortUuid = uuid.toString().replace("-", "").substring(0, 16);
         System.out.println("16位字符串是: " + shortUuid);
         vehicle.setVid(shortUuid);
+        result.setMessage("ok");
         result.setData(vehicleMapper.insert(vehicle));
         return result ;
     }

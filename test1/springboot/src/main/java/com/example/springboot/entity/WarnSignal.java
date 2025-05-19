@@ -6,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import nonapi.io.github.classgraph.json.Id;
 
+import java.time.LocalDateTime;
+
 @Data
 @TableName("warn_signal")
 public class WarnSignal {
     @Id
     //预警信号id
-    private int id;
+    private String id;
     //车架编号
     @JsonProperty("car_id")  // 映射JSON中的car_id字段
     private Integer carId;
@@ -23,7 +25,8 @@ public class WarnSignal {
     //处理状态 1代表处理了 0代表未处理
     @JsonProperty("signal_state")  // 映射JSON中的signal_state字段
     private int signalState;
-
+    @JsonProperty("create_time")  // 映射JSON中的signal_state字段
+    private LocalDateTime createTime;
     public WarnSignal(WarnSignalDto warnSignalDto){
         this.cwsignal=warnSignalDto.getSignal();
         this.carId=warnSignalDto.getCarId();

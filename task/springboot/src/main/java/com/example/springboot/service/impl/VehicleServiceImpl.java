@@ -49,6 +49,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
         System.out.println("16位字符串是: " + shortUuid);
         vehicle.setVid(shortUuid);
         result.setMessage("ok");
+        result.setCode(200);
         result.setData(vehicleMapper.insert(vehicle));
         return result ;
     }
@@ -77,6 +78,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
             result.setMessage("当前数据库也没有数据 查询不到该数据");
             result.setData(vehicle);
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -106,6 +108,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
                 vehicleLock.forceUnlock();
             }
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -120,6 +123,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
         else{
             result.setMessage("该数据不存在");
         }
+        result.setCode(200);
         return result;
     }
 
@@ -131,6 +135,7 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
         Result result=new Result<>();
         result.setData(vehicleList);
         result.setMessage("已成功获取当前所有车辆数据");
+        result.setCode(200);
         return result;
     }
 }

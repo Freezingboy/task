@@ -330,7 +330,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         List<WarnSignal>warnSignals=warnSignalMapper.selectList(warnSignalLambdaQueryWrapper);
         Result result=new Result<>();
         result.setCode(200);
-        result.setMessage("已成功获取数据");
+        result.setMessage("ok");
         result.setData(warnSignals);
         return  result;
     }
@@ -522,6 +522,7 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                 warnSignalLock.forceUnlock();
             }
         }
+        result.setCode(200);
         return result;
     }
     //根据id删除信息信息
@@ -548,6 +549,8 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         List<WarnSignal> WarnSignalList=warnSignalMapper.selectList(queryWrapper);
         Result result=new Result<>();
         result.setData(WarnSignalList);
+        result.setCode(200);
+
         result.setMessage("已成功获取当前所有预警信号数据");
         return result;
     }

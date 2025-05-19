@@ -41,6 +41,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
             return result;
         }
         result.setMessage("ok");
+        result.setCode(200);
         result.setData(ruleMapper.insert(rule));
         return result ;
     }
@@ -69,6 +70,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
             result.setMessage("当前数据库也没有数据 查询不到该数据");
             result.setData(rule);
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -97,6 +99,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
                 ruleLock.forceUnlock();
             }
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -111,6 +114,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
         else{
             result.setMessage("该数据不存在");
         }
+        result.setCode(200);
         return result;
     }
 
@@ -122,6 +126,7 @@ public class RuleServiceImpl extends ServiceImpl<RuleMapper, Rule> implements Ru
         Result result=new Result<>();
         result.setData(vehicleList);
         result.setMessage("已成功获取当前所有规则数据");
+        result.setCode(200);
         return result;
     }
 }

@@ -47,6 +47,7 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
             result.setMessage("当前id已被绑定，不可插入");
             return result;
         }
+        result.setCode(200);
         result.setMessage("ok");
         result.setData(warnMessageMapper.insert(warnMessage));
         return result ;
@@ -76,6 +77,7 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
             result.setMessage("当前数据库也没有数据 查询不到该数据");
             result.setData(warnMessage);
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -105,6 +107,7 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
                 warnMessageLock.forceUnlock();
             }
         }
+        result.setCode(200);
         return result;
     }
     @Override
@@ -129,7 +132,8 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
         List<WarnMessage> warnMessageList=warnMessageMapper.selectList(queryWrapper);
         Result result=new Result<>();
         result.setData(warnMessageList);
-        result.setMessage("已成功获取当前所有车辆数据");
+        result.setCode(200);
+        result.setMessage("已成功获取当前所有警告信息数据");
         return result;
     }
 

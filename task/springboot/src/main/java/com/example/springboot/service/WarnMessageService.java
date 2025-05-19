@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.springboot.entity.WarnMessage;
 import com.example.springboot.utils.Result;
 
+import java.util.List;
+
 
 public interface WarnMessageService extends IService<WarnMessage> {
     Result add(WarnMessage warnMessage);
@@ -17,4 +19,6 @@ public interface WarnMessageService extends IService<WarnMessage> {
     Result getAll();
 
     Result getMessageByCarId(String carId);
+
+    void insertBatch(List<WarnMessage> messages);
 }

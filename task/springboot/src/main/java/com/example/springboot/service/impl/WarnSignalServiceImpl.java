@@ -31,7 +31,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSignal> implements WarnSignalService {
@@ -102,75 +104,136 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
 //        }
 //        return warnSignal.getId();
 //    }
+    // 辅助方法：生成22位UUID
+    private String generateShortUuid() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 22);
+    }
+    // 构建结果Map
+    private Map<String, Object> buildResultMap(WarnMessage message) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("车架编号", message.getCarId());
+        map.put("电池类型", message.getBatteryType());
+        if(message.getWarnLevel() == -1) {
+            map.put("warnName", "不报警");
+        } else {
+            map.put("warnName", message.getWarnName());
+            map.put("warnLevel", message.getWarnLevel());
+        }
+        return map;
+    }
     @Override
-    //这一个接口是对外声明的 可以主动调用
+    //这一个接口是对外声明的 可以主动调用 将warn接口配置成stream流与lambda表达式组合
     public Result warn(List<WarnSignalDto> warnSignalDtos) throws Exception {
         Result result = new Result<>();
-//        //我这里只查一次 缓解查询压力
-//        int newSignalId=getSignalId();
-        //声明警告信息的包装类
-        List<WarnMessageDto> TotalMessageDtos=new ArrayList<>();
-        //对每一个前端传入的信号信息进行处理
-        for(WarnSignalDto warnSignalDto:warnSignalDtos) {
-            WarnSignal warnSignal = new WarnSignal(warnSignalDto);
-            //对每一个warnSignal进行处理
-            warnSignal.setSignalState(1);
-            warnSignal.setCreateTime(LocalDateTime.now());
-//            //将id设为最新的id+1
-//            warnSignal.setId(++newSignalId);
-            UUID uuid = UUID.randomUUID();
-            String shortUuid = uuid.toString().replace("-", "").substring(0, 22);
-            System.out.println("22位字符串是: " + shortUuid);
-            warnSignal.setId(shortUuid);
-            //下面对每一个信号进行处理判断
-            List<WarnMessageDto> warmMessageDtos=handleWarnSignal(warnSignal);
-            //只要返回的结果不是0个 就将结果加入到总结果集合中
-            if(warmMessageDtos.size()!=0)
-            {
-                for (WarnMessageDto warnMessageDto : warmMessageDtos) {
-                    WarnMessage warnMessage=new WarnMessage(warnMessageDto);
-                    //绑定警告信息与信号id之间的关联关系
-                    //将每一个数据警告信息加入数据库
-                    System.out.println(warnSignal.getId());
-                    warnMessage.setSignalId(warnSignal.getId());
-                    int t=warnMessageMapper.insert(warnMessage);
-                    if(t==1){
-                        System.out.println("当前warnMessage为"+warnMessage);
-                    }else{
-                        System.out.println("当前插入数据库插入出错");
-                    }
-                }
-                //将所有告警信息加入到total用来封装信息返回给前端
-                TotalMessageDtos.addAll(warmMessageDtos);
-            }
-            //处理完之后再将数据加入数据库
-            int p=warnSignalMapper.insert(warnSignal);
-            if(p==1){
-                System.out.println("将signal加入数据库");
-            }else{
-                System.out.println("加入signal失败");
-            }
+        // 使用Stream处理信号列表
+        List<WarnMessage> warnMessages = warnSignalDtos.stream()
+                .map(dto -> {
+                    // 创建信号实体并初始化
+                    WarnSignal signal = new WarnSignal(dto);
+                    signal.setSignalState(1);
+                    signal.setCreateTime(LocalDateTime.now());
+                    signal.setId(generateShortUuid());
+                    return signal;
+                })
+                .flatMap(signal -> {
+                    // 处理信号生成告警信息
+                    List<WarnMessageDto> messageDtos = handleWarnSignal(signal);
+
+                    // 转换DTO为实体并关联signalId
+                    List<WarnMessage> messages = messageDtos.stream()
+                            .map(WarnMessage::new) // 使用构造函数转换
+                            .peek(entity -> entity.setSignalId(signal.getId())) // 双重保障设置
+                            .collect(Collectors.toList());
+
+                    // 插入信号记录
+                    warnSignalMapper.insert(signal);
+                    return messages.stream();
+                })
+                .collect(Collectors.toList());
+
+        // 批量插入告警信息
+        if(!warnMessages.isEmpty()) {
+            for(WarnMessage warnMessage:warnMessages)
+            warnMessageMapper.insert(warnMessage);
         }
-        //对数据返回的格式进行整理
-        List<Map<String,Object>>resultList=new ArrayList<>();
-        for(WarnMessageDto warnMessageDto:TotalMessageDtos){
-            Map<String,Object>map=new HashMap<>();
-            map.put("车架编号",warnMessageDto.getCarId());
-            map.put("电池类型",warnMessageDto.getBatteryType());
-            if (warnMessageDto.getWarnLevel()==-1){
-                map.put("warnName","不报警");
-            }else{
-                map.put("warnName",warnMessageDto.getWarnName());
-                map.put("warnLevel",warnMessageDto.getWarnLevel());
-            }
-            //将改造后的map结果放入结果集中
-            resultList.add(map);
-        }
+
+        // 构建返回结果
+        List<Map<String, Object>> resultList = warnMessages.stream()
+                .map(this::buildResultMap)
+                .collect(Collectors.toList());
+
         result.setCode(200);
         result.setData(resultList);
         result.setMessage("ok");
         return result ;
+//        -------------------------------------------------------------------------
+        //原有不用streamAPI与lambda表达式的方法
+//        //我这里只查一次 缓解查询压力
+//        int newSignalId=getSignalId();
+//        声明警告信息的包装类
+//        List<WarnMessageDto> TotalMessageDtos=new ArrayList<>();
+//        //对每一个前端传入的信号信息进行处理
+//        for(WarnSignalDto warnSignalDto:warnSignalDtos) {
+//            WarnSignal warnSignal = new WarnSignal(warnSignalDto);
+//            //对每一个warnSignal进行处理
+//            warnSignal.setSignalState(1);
+//            warnSignal.setCreateTime(LocalDateTime.now());
+////            //将id设为最新的id+1
+////            warnSignal.setId(++newSignalId);
+//            UUID uuid = UUID.randomUUID();
+//            String shortUuid = uuid.toString().replace("-", "").substring(0, 22);
+//            System.out.println("22位字符串是: " + shortUuid);
+//            warnSignal.setId(shortUuid);
+//            //下面对每一个信号进行处理判断
+//            List<WarnMessageDto> warmMessageDtos=handleWarnSignal(warnSignal);
+//            //只要返回的结果不是0个 就将结果加入到总结果集合中
+//            if(warmMessageDtos.size()!=0)
+//            {
+//                for (WarnMessageDto warnMessageDto : warmMessageDtos) {
+//                    WarnMessage warnMessage=new WarnMessage(warnMessageDto);
+//                    //绑定警告信息与信号id之间的关联关系
+//                    //将每一个数据警告信息加入数据库
+//                    System.out.println(warnSignal.getId());
+//                    warnMessage.setSignalId(warnSignal.getId());
+//                    int t=warnMessageMapper.insert(warnMessage);
+//                    if(t==1){
+//                        System.out.println("当前warnMessage为"+warnMessage);
+//                    }else{
+//                        System.out.println("当前插入数据库插入出错");
+//                    }
+//                }
+//                //将所有告警信息加入到total用来封装信息返回给前端
+//                TotalMessageDtos.addAll(warmMessageDtos);
+//            }
+//            //处理完之后再将数据加入数据库
+//            int p=warnSignalMapper.insert(warnSignal);
+//            if(p==1){
+//                System.out.println("将signal加入数据库");
+//            }else{
+//                System.out.println("加入signal失败");
+//            }
+//        }
+//        //对数据返回的格式进行整理
+//        List<Map<String,Object>>resultList=new ArrayList<>();
+//        for(WarnMessageDto warnMessageDto:TotalMessageDtos){
+//            Map<String,Object>map=new HashMap<>();
+//            map.put("车架编号",warnMessageDto.getCarId());
+//            map.put("电池类型",warnMessageDto.getBatteryType());
+//            if (warnMessageDto.getWarnLevel()==-1){
+//                map.put("warnName","不报警");
+//            }else{
+//                map.put("warnName",warnMessageDto.getWarnName());
+//                map.put("warnLevel",warnMessageDto.getWarnLevel());
+//            }
+//            //将改造后的map结果放入结果集中
+//            resultList.add(map);
+//        }
+//        result.setCode(200);
+//        result.setData(resultList);
+//        result.setMessage("ok");
+//        return result ;
     }
+
     //下面这个warn1执行定时任务定时查询数据库中的 从数据库中获取数据
     @Override
     @Scheduled(cron = "0 0/5 * * * ?")

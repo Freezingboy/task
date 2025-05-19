@@ -151,11 +151,23 @@ public class WarnMessageServiceImpl extends ServiceImpl<WarnMessageMapper, WarnM
                 List<WarnMessage>warnMessageList=warnMessageMapper.selectList(warnMessageLambdaQueryWrapper);
                 totalWarnMessageList.addAll(warnMessageList);
             }
-
         }
         result.setData(totalWarnMessageList);
         result.setMessage("ok");
         result.setCode(200);
         return result;
+    }
+
+    @Override
+    public void insertBatch(List<WarnMessage> messages) {
+//        Result result=new Result<>();
+        for(WarnMessage warnMessage:messages){
+            WarnMessage warnMessage1=warnMessageMapper.selectById(warnMessage.getId());
+            if (warnMessage1!=null)
+            {
+                System.out.println("当前id已被绑定，不可插入");
+            }
+           warnMessageMapper.insert(warnMessage);
+        }
     }
 }

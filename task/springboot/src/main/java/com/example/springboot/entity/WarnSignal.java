@@ -1,5 +1,8 @@
 package com.example.springboot.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.springboot.entity.dto.WarnSignalDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 public class WarnSignal {
     @Id
     //预警信号id
+    @TableId(type = IdType.ASSIGN_ID)
     private String id;
     //车架编号
     @JsonProperty("car_id")  // 映射JSON中的car_id字段
@@ -23,7 +27,7 @@ public class WarnSignal {
     //信号
     private String cwsignal;
     //处理状态 1代表处理了 0代表未处理
-    @JsonProperty("signal_state")  // 映射JSON中的signal_state字段
+    @TableField(value = "signal_state")  // 映射JSON中的signal_state字段
     private int signalState;
     @JsonProperty("create_time")  // 映射JSON中的signal_state字段
     private LocalDateTime createTime;

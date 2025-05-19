@@ -138,16 +138,14 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
                 .flatMap(signal -> {
                     // 处理信号生成告警信息
                     List<WarnMessageDto> messageDtos = handleWarnSignal(signal);
-
-                    // 转换DTO为实体并关联signalId
-                    List<WarnMessage> messages = messageDtos.stream()
-                            .map(WarnMessage::new) // 使用构造函数转换
-                            .peek(entity -> entity.setSignalId(signal.getId())) // 双重保障设置
-                            .collect(Collectors.toList());
-
-                    // 插入信号记录
-                    warnSignalMapper.insert(signal);
-                    return messages.stream();
+                        // 转换DTO为实体并关联signalId
+                        List<WarnMessage> messages = messageDtos.stream()
+                                .map(WarnMessage::new) // 使用构造函数转换
+                                .peek(entity -> entity.setSignalId(signal.getId())) // 双重保障设置
+                                .collect(Collectors.toList());
+                        // 插入信号记录
+                        warnSignalMapper.insert(signal);
+                        return messages.stream();
                 })
                 .collect(Collectors.toList());
 
@@ -245,7 +243,8 @@ public class WarnSignalServiceImpl extends ServiceImpl<WarnSignalMapper, WarnSig
         //从数据库中获取到当前的警告信息
         LambdaQueryWrapper<WarnSignal>warnSignalLambdaQueryWrapper=new LambdaQueryWrapper<>();
         //查询未处理的信号信息 并放到消息队列中
-        warnSignalLambdaQueryWrapper.eq(WarnSignal::getSignalState,"0");
+        warnSignalLambdaQueryWrapper.eq(WarnSignal::getSignalState,0);
+
         List<WarnSignal>warnSignals=warnSignalMapper.selectList(warnSignalLambdaQueryWrapper);
 
         // warnSignalMapper.insert(warnSignal);

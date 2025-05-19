@@ -3,7 +3,9 @@ package com.example.springboot.entity;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.springboot.entity.dto.WarnMessageDto;
+import com.example.springboot.mapper.WarnMessageMapper;
 import com.example.springboot.mapper.WarnSignalMapper;
+import com.example.springboot.redis.RedisCache;
 import com.example.springboot.service.WarnMessageService;
 import com.example.springboot.service.WarnSignalService;
 import com.example.springboot.utils.Result;
@@ -15,14 +17,19 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,10 +38,19 @@ public class Consumer implements CommandLineRunner {
     @Resource
     private WarnSignalService warnSignalService;
     @Resource
+    private WarnSignalMapper warnSignalMapper;
+    @Resource
     private WarnMessageService warnMessageService;
     @Override
     public void run(String... args) throws Exception {
         startMQConsumer();
+    }
+    @Resource
+    private RedissonClient redissonClient;
+    @Autowired
+    private final RedisCache redisCache;
+    public Consumer(RedisCache redisCache) {
+        this.redisCache = redisCache;
     }
     //将构建结果集合单独剥离到外围成一个方法
     private Map<String, Object> buildResultMap(WarnMessageDto dto, String signalId) {
@@ -98,7 +114,6 @@ public class Consumer implements CommandLineRunner {
                             // 批量更新信号状态使用并行流
                             warnSignals.parallelStream() // 根据数据量决定是否并行
                                     .forEach(warnSignalService::updateWarnSignal);
-
                             System.out.println("消费者处理后当前结果为" + resultList);
                         }else{
                             System.out.println("消费者没有拆分到结果，不做处理");
